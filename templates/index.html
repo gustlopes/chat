@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSN DOS GURI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            Messenger of Guris
+            <span class="logo">🧉</span>
+        </div>
+
+       
+        <div id="username-section">
+            <input type="text" id="username" placeholder="Escolha seu nome de usuário...">
+            <button id="set-username">Definir nome</button>
+        </div>
+
+        
+        <div id="messages"></div>
+
+        
+        <div class="input-area">
+            <input type="text" id="input-message" placeholder="Digite uma mensagem...">
+            <button id="send-message">Enviar</button>
+        </div>
+    </div>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
+    <script>
+        const socket = io.connect("http://ipv4:5000");
+
+        const sendButton = document.getElementById("send-message");
+        const messageInput = document.getElementById("input-message");
+        const messagesDiv = document.getElementById("messages");
+        const usernameInput = document.getElementById("username");
+        const setUsernameButton = document.getElementById("set-username");
+
+        let username = ""; 
+
+    
+        setUsernameButton.addEventListener("click", () => {
+            const inputUsername = usernameInput.value.trim();
+            if (inputUsername !== "") {
+                username = inputUsername;
+                document.getElementById("username-section").style.display = "none";
+                messageInput.focus();
+            } else {
+                alert("Por favor, digite um nome de usuário!");
+            }
+        });
+
+        
+        function sendMessage() {
+            const message = messageInput.value;
+            if (message.trim() !== "" && username !== "") {  
+                const fullMessage = `${username}: ${message}`; 
+                socket.emit("send_message", fullMessage); 
+                messageInput.value = ""; 
+            }
+        }
+
+        
+        sendButton.addEventListener("click", sendMessage);
+
+       
+        messageInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {  
+                sendMessage();  
+                event.preventDefault();  
+            }
+        });
+
+    
+        socket.on("message", (message) => {
+            const messageElement = document.createElement("div");
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+        });
+    </script>
+</body>
+</html>
